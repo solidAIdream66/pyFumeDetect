@@ -3,6 +3,9 @@ import cv2
 import tempfile
 from readTrafficVideo import playVideo
 
+def showFrame(frame):
+    st_frame.image(frame[:, :, ::-1])
+    return True
 
 if __name__ == "__main__":
     st.title("Track truck on traffic videos using OpenCV")
@@ -21,7 +24,6 @@ if __name__ == "__main__":
 
     if video_file:
         st_frame = st.empty()
-        showFrame = lambda frame: st_frame.image(frame[:, :, ::-1])
         playVideo(video_file, showFrame)
         # h_video = cv2.VideoCapture(video_file)
 

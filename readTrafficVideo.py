@@ -45,19 +45,23 @@ def playVideo(vide_file, showFrame):
             break
 
         frame_truck_mark = trackTruck(h_bg, frame)
-        showFrame(frame_truck_mark)
-
-        key = cv2.waitKey(1)
-        if key == ord('Q') or key == ord('q') or key == 27:
+        if not showFrame(frame_truck_mark):
             break
 
     h_video.release()
 
 
+def showFrame(frame):
+    cv2.imshow(win_name, frame)
+    key = cv2.waitKey(1)
+    if key == ord('Q') or key == ord('q') or key == 27:
+        return False
+    return True
+
+
 if __name__ == "__main__":
     win_name = 'Traffic Video with Fume Preview'
     cv2.namedWindow(win_name)
-    showFrame = lambda frame: cv2.imshow(win_name, frame)
     playVideo('Traffic Videos/test.mp4', showFrame)
 
     cv2.destroyWindow(win_name)
