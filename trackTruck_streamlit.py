@@ -1,11 +1,13 @@
 import streamlit as st
 import cv2
 import tempfile
-from readTrafficVideo import playVideo
+from readTrafficVideo import playVideo, trackTruck
 
 def showFrame(frame):
     st_frame.image(frame[:, :, ::-1])
     return True
+def processFrame(frame):
+    return trackTruck(h_bg, frame)
 
 if __name__ == "__main__":
     st.title("Track truck on traffic videos using OpenCV")
@@ -24,7 +26,8 @@ if __name__ == "__main__":
 
     if video_file:
         st_frame = st.empty()
-        playVideo(video_file, showFrame)
+        h_bg = cv2.createBackgroundSubtractorKNN(history=200)
+        playVideo(video_file, processFrame, showFrame)
         # h_video = cv2.VideoCapture(video_file)
 
         # st.write('codec', int(h_video.get(cv2.CAP_PROP_FOURCC)).to_bytes(4, byteorder=sys.byteorder).decode())

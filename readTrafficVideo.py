@@ -35,17 +35,16 @@ def trackTruck(h_bg, frame):
     return frame_composite
 
 
-def playVideo(vide_file, showFrame):
+def playVideo(vide_file, processFrame, showFrame):
     h_video = cv2.VideoCapture(vide_file)
-    h_bg = cv2.createBackgroundSubtractorKNN(history=200)
 
     while True:
         is_frame, frame = h_video.read()
         if not is_frame:
             break
 
-        frame_truck_mark = trackTruck(h_bg, frame)
-        if not showFrame(frame_truck_mark):
+        frame = processFrame(frame)
+        if not showFrame(frame):
             break
 
     h_video.release()
@@ -58,10 +57,14 @@ def showFrame(frame):
         return False
     return True
 
+def processFrame(frame):
+    return trackTruck(h_bg, frame)
 
 if __name__ == "__main__":
     win_name = 'Traffic Video with Fume Preview'
     cv2.namedWindow(win_name)
-    playVideo('Traffic Videos/test.mp4', showFrame)
+    h_bg = cv2.createBackgroundSubtractorKNN(history=200)
+
+    playVideo('Traffic Videos/test.mp4', processFrame, showFrame)
 
     cv2.destroyWindow(win_name)
