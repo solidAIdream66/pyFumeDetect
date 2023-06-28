@@ -4,6 +4,13 @@ from readTrafficVideo import playVideo
 import numpy as np
 
 
+class LineEx:
+    def __init__(self, line, slope, const):
+        self.line = line
+        self.slope = slope
+        self.const = const
+
+
 def regionOfInterest(img, vertics):
     """Select the region of interest (ROI) from a defined list of vertices."""
     mask = np.zeros_like(img)
@@ -38,7 +45,7 @@ def hough_lines(img, rho, theta, threshold, min_line_len, max_line_gap):
 
 
 def calc_line_parameters(lines):
-    my_lines = []
+    lines_ex = []
     if (lines is not None) and (len(lines) != 0):
         for line in lines:
             for x1, y1, x2, y2 in line:
@@ -47,27 +54,29 @@ def calc_line_parameters(lines):
                 else:
                     slope = (y1 - y2) / 0.1
                 c = y1 - slope * x1
-                my_lines.append([x1, y1, x2, y2, slope, c])
+                line_ex = LineEx([x1, y1, x2, y2], slope, c)
+                lines_ex.append(line_ex)
 
-    return my_lines
-
-
-def filter_slope_range(my_lines, upper_slope, lower_slope):
-    my_lines_filtered = []
-
-    for x1, y1, x2, y2, slope, const in my_lines:
-        if slope < upper_slope or slope > lower_slope:
-            my_lines_filtered.append([x1, y1, x2, y2, slope, const])
-    return my_lines_filtered
+    return lines_ex
 
 
-def cluster_lines(my_lines, slope_gap, const_gap):
+def filter_slope_range(lines_ex, upper_slope, lower_slope):
+    linesEx_filtered = []
+
+    for lineEx in lines_ex:
+        if lineEx.slope < upper_slope or lineEx.slope > lower_slope:
+            linesEx_filtered.append(lineEx)
+    return linesEx_filtered
+
+
+def cluster_lines(lines_ex, slope_gap, const_gap):
     clusters = []
-    for i_line, (x1, y1, x2, y2, slope, const) in enumerate(my_lines):
+    for i_line, lineEx in enumerate(lines_ex):
         is_cluster = False
         for cluster in clusters:
             for i_cluster in cluster:
-                if abs(slope - my_lines[i_cluster][4]) < slope_gap and abs(const - my_lines[i_cluster][5]) < const_gap:
+                if abs(lineEx.slope - lines_ex[i_cluster].slope) < slope_gap and \
+                        abs(lineEx.const - lines_ex[i_cluster].const) < const_gap:
                     cluster.append(i_line)
                     is_cluster = True
                     break
@@ -91,25 +100,25 @@ def cal_avg(values):
         return sum(values) / n
 
 
-def extrapolated_lane_image(clusters, my_lines, upper_border, lower_border, line_number_threshold):
+def extrapolated_lane_image(clusters, lines_ex, upper_border, lower_border, line_number_threshold):
     """Main function called to get the final lane lines"""
-    my_lines_combined = []
+    lines_combined = []
     for cluster in clusters:
         if len(cluster) <= line_number_threshold:
             break
         slopes = []
         consts = []
         for i_cluster in cluster:
-            slopes.append(my_lines[i_cluster][4])
-            consts.append(my_lines[i_cluster][5])
+            slopes.append(lines_ex[i_cluster].slope)
+            consts.append(lines_ex[i_cluster].const)
 
         avg_slope = cal_avg(slopes)
         avg_consts = cal_avg(consts)
         x_lane_lower_point = int((lower_border - avg_consts) / avg_slope)
         x_lane_upper_point = int((upper_border - avg_consts) / avg_slope)
 
-        my_lines_combined.append([x_lane_lower_point, lower_border, x_lane_upper_point, upper_border])
-    return my_lines_combined
+        lines_combined.append([x_lane_lower_point, lower_border, x_lane_upper_point, upper_border])
+    return lines_combined
 
 
 def laneDetect(frame):
@@ -139,26 +148,26 @@ def laneDetect(frame):
     lines = hough_lines(canny_blur, rho, theta, threshold, min_line_len, max_line_gap)
 
     # 4.1 calculate slope, consts of lines
-    my_lines = calc_line_parameters(lines)
-    # print(len(my_lines))
+    lines_ex = calc_line_parameters(lines)
+    # print(len(lines_ex))
 
     # 4.2 filter the lines by slope range
     left_slope = (109 - 1530) / (886 - 256) + 0.2
     right_slope = (94 - 436) / (1560 - 2039) - 0.2
-    my_lines = filter_slope_range(my_lines, left_slope, right_slope)
-    # print(len(my_lines))
+    lines_ex = filter_slope_range(lines_ex, left_slope, right_slope)
+    # print(len(lines_ex))
 
     # 4.3 cluster by slope and consts, sort by number
     slope_gap = 0.1
     const_gap = 50
-    clusters = cluster_lines(my_lines, slope_gap, const_gap)
+    clusters = cluster_lines(lines_ex, slope_gap, const_gap)
     # print(clusters)
 
     # 5. Extrapolate the lanes from lines found
     roi_upper_border = 100
     roi_lower_border = 1530
     line_number_threshold = 1
-    lines = extrapolated_lane_image(clusters, my_lines, roi_upper_border, roi_lower_border, line_number_threshold)
+    lines = extrapolated_lane_image(clusters, lines_ex, roi_upper_border, roi_lower_border, line_number_threshold)
     # print(lines)
 
     # Composite the result with original image
