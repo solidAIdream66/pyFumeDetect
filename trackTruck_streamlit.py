@@ -1,7 +1,7 @@
 import streamlit as st
 import cv2
 import tempfile
-from readTrafficVideo import playVideo, trackTruck
+from trackTruck import playVideo, trackTruck
 
 def showFrame(frame):
     st_frame.image(frame[:, :, ::-1])

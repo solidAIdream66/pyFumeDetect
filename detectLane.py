@@ -1,6 +1,9 @@
+"""Detect lane by hough line transform.
+"""
+
 import streamlit as st
 import cv2
-from readTrafficVideo import playVideo
+from trackTruck import playVideo
 import numpy as np
 
 
