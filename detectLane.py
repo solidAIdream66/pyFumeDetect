@@ -3,7 +3,7 @@
 
 import streamlit as st
 import cv2
-from trackTruck import playVideo
+from trackTruck import playVideo, ShowFrame
 import numpy as np
 
 
@@ -185,23 +185,14 @@ def clickEvent(event, x, y, flags, params):
         print(x, ' ', y)
 
 
-def showFrame(frame):
-    cv2.imshow(win_name, frame)
+if __name__ == '__main__':
+    win_name = 'Lane detection using hough line transform'
+    cv2.namedWindow(win_name)
 
     # temporally to get coordinates of Region of Interest
     if False:
         cv2.setMouseCallback(win_name, clickEvent)
 
-    key = cv2.waitKey(1)
-    if key == ord('Q') or key == ord('q') or key == 27:
-        return False
-    return True
-
-
-if __name__ == '__main__':
-    win_name = 'Lane detection using hough line transform'
-    cv2.namedWindow(win_name)
-
-    playVideo('Traffic Videos/test.mp4', laneDetect, showFrame)
+    playVideo('Traffic Videos/test.mp4', laneDetect, ShowFrame(win_name))
 
     cv2.destroyWindow(win_name)

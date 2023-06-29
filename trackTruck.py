@@ -1,3 +1,10 @@
+"""Track truck by motion detection.
+Motion Detection
+Background subtraction models work by building a statistical model of the background scene based on previous frames in
+a video stream. The model can then be used to create a foreground mask of the current frame by comparing the current
+frame with the model of the background.
+"""
+
 import cv2
 import sys
 import numpy as np
@@ -50,21 +57,28 @@ def playVideo(vide_file, processFrame, showFrame):
     h_video.release()
 
 
-def showFrame(frame):
-    cv2.imshow(win_name, frame)
-    key = cv2.waitKey(1)
-    if key == ord('Q') or key == ord('q') or key == 27:
-        return False
-    return True
+class ShowFrame:
+    def __init__(self, win_name, delay=1):
+        self.win_name = win_name
+        self.delay = delay
+
+    def __call__(self, frame):
+        cv2.imshow(self.win_name, frame)
+        key = cv2.waitKey(self.delay)
+        if key == ord('Q') or key == ord('q') or key == 27:
+            return False
+        return True
+
 
 def processFrame(frame):
     return trackTruck(h_bg, frame)
+
 
 if __name__ == "__main__":
     win_name = 'Traffic Video with Fume Preview'
     cv2.namedWindow(win_name)
     h_bg = cv2.createBackgroundSubtractorKNN(history=200)
 
-    playVideo('Traffic Videos/test.mp4', processFrame, showFrame)
+    playVideo('Traffic Videos/test.mp4', processFrame, ShowFrame(win_name))
 
     cv2.destroyWindow(win_name)

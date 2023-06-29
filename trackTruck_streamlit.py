@@ -3,11 +3,15 @@ import cv2
 import tempfile
 from trackTruck import playVideo, trackTruck
 
+
 def showFrame(frame):
     st_frame.image(frame[:, :, ::-1])
     return True
+
+
 def processFrame(frame):
     return trackTruck(h_bg, frame)
+
 
 if __name__ == "__main__":
     st.title("Track truck on traffic videos using OpenCV")
@@ -34,5 +38,3 @@ if __name__ == "__main__":
         #
         # h_video.release()
         # exit()
-
-
